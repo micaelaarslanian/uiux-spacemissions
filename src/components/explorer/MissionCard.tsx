@@ -1,11 +1,24 @@
 "use client";
 
-import { Box, Card, CardActionArea, CardContent, Chip, Divider, Typography } from "@mui/material";
+import {
+    Box,
+    Card,
+    CardActionArea,
+    CardContent,
+    Chip,
+    Divider,
+    IconButton,
+    Typography,
+} from "@mui/material";
+import FavoriteIcon from "@mui/icons-material/Favorite";
 import type { Mission } from "@/types/mission";
 
 type Props = {
     mission: Mission;
     onOpen: (id: string) => void;
+
+    isFavorited: boolean;
+    onToggleFavorite: (id: string) => void;
 };
 
 function statusChipColor(status: string): "success" | "error" | "default" {
@@ -15,7 +28,12 @@ function statusChipColor(status: string): "success" | "error" | "default" {
     return "default";
 }
 
-export default function MissionCard({ mission, onOpen }: Props) {
+export default function MissionCard({
+    mission,
+    onOpen,
+    isFavorited,
+    onToggleFavorite,
+}: Props) {
     const handleOpen = () => onOpen(mission.id);
 
     return (
@@ -37,6 +55,11 @@ export default function MissionCard({ mission, onOpen }: Props) {
                     opacity: 1,
                     transform: "translateY(0px)",
                 },
+                "@keyframes favPop": {
+                    "0%": { transform: "scale(1)" },
+                    "50%": { transform: "scale(1.25)" },
+                    "100%": { transform: "scale(1)" },
+                },
             }}
         >
             <CardActionArea
@@ -54,7 +77,7 @@ export default function MissionCard({ mission, onOpen }: Props) {
                 sx={{ borderRadius: 3, cursor: "pointer" }}
             >
                 <CardContent sx={{ p: 2.5 }}>
-                    {/* Top row: status */}
+                    {/* Top row: status + favorite */}
                     <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                         <Chip
                             size="small"
@@ -62,6 +85,21 @@ export default function MissionCard({ mission, onOpen }: Props) {
                             color={statusChipColor(mission.status)}
                             sx={{ fontWeight: 700, letterSpacing: 0.3 }}
                         />
+
+                        <IconButton
+                            size="small"
+                            aria-label={isFavorited ? "Favorited" : "Not favorited"}
+                            onClick={(e) => e.stopPropagation()}
+                            disabled
+                            sx={{
+                                color: isFavorited ? "error.main" : "text.secondary",
+                                opacity: isFavorited ? 1 : 0.5,
+                            }}
+                        >
+                            {isFavorited && (
+                                <FavoriteIcon fontSize="small" sx={{ color: "error.main" }} />
+                            )}
+                        </IconButton>
                     </Box>
 
                     {/* Title */}

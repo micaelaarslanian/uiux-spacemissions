@@ -1,7 +1,16 @@
 "use client";
 
 import * as React from "react";
-import { Box, Button, Divider, Drawer, IconButton, Typography } from "@mui/material";
+import {
+    Alert,
+    Box,
+    Button,
+    Divider,
+    Drawer,
+    IconButton,
+    Snackbar,
+    Typography,
+} from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 
 import type { Mission } from "@/types/mission";
@@ -12,12 +21,10 @@ import MissionsGrid from "./MissionsGrid";
 import MissionDetailsDialog from "./MissionDetailsDialog";
 
 export type SortKey = "name_asc" | "year_asc" | "year_desc";
-
-type Props = {
-    missions: Mission[];
-};
-
+type Props = { missions: Mission[] };
 type YearRange = { from?: number; to?: number };
+
+const FAVORITES_KEY = "uxui-spacemissions:favorites";
 
 function uniqueSorted(values: string[]) {
     return Array.from(new Set(values)).sort((a, b) => a.localeCompare(b));
@@ -37,21 +44,31 @@ function computeStep(min: number, max: number) {
 }
 
 export default function ExplorerLayout({ missions }: Props) {
-    // Top toolbar state
+    // Top toolbar
     const [missionQuery, setMissionQuery] = React.useState("");
     const [selectedAgencies, setSelectedAgencies] = React.useState<string[]>([]);
     const [sortKey, setSortKey] = React.useState<SortKey>("year_asc");
 
-    // Sidebar filter state
+    // Sidebar filters
     const [selectedMissionTypes, setSelectedMissionTypes] = React.useState<string[]>([]);
     const [selectedStatuses, setSelectedStatuses] = React.useState<string[]>([]);
     const [yearRange, setYearRange] = React.useState<YearRange>({});
     const [costRange, setCostRange] = React.useState<[number, number]>([0, 0]);
 
-    // Mobile filters drawer
+    // Mobile filters
     const [filtersOpen, setFiltersOpen] = React.useState(false);
 
-    // Options from dataset
+    // Favorites
+    const [favorites, setFavorites] = React.useState<Set<string>>(new Set());
+    const [showFavoritesOnly, setShowFavoritesOnly] = React.useState(false);
+
+    // Toast feedback
+    const [snackbar, setSnackbar] = React.useState<{ open: boolean; message: string }>({
+        open: false,
+        message: "",
+    });
+
+    // Dataset options
     const agencies = React.useMemo(() => uniqueSorted(missions.map((m) => m.agency)), [missions]);
     const missionTypes = React.useMemo(
         () => uniqueSorted(missions.map((m) => m.missionType)),
@@ -59,10 +76,7 @@ export default function ExplorerLayout({ missions }: Props) {
     );
     const statuses = React.useMemo(() => uniqueSorted(missions.map((m) => m.status)), [missions]);
 
-
-
-
-    // Cost min/max + step from dataset
+    // Cost range from dataset
     const costMinMax = React.useMemo(() => {
         const costs = missions
             .map((m) => m.cost)
@@ -70,20 +84,57 @@ export default function ExplorerLayout({ missions }: Props) {
         return computeMinMax(costs);
     }, [missions]);
 
-
     const costStep = React.useMemo(
         () => computeStep(costMinMax.min, costMinMax.max),
         [costMinMax.min, costMinMax.max]
     );
 
-    // Initialize slider to full dataset range
+    // Initialize slider once dataset range is known
     React.useEffect(() => {
         setCostRange([costMinMax.min, costMinMax.max]);
     }, [costMinMax.min, costMinMax.max]);
 
+    // Load favorites on mount
+    React.useEffect(() => {
+        try {
+            const raw = localStorage.getItem(FAVORITES_KEY);
+            if (!raw) return;
+            const parsed = JSON.parse(raw);
+            if (Array.isArray(parsed)) {
+                setFavorites(new Set(parsed.filter((x) => typeof x === "string")));
+            }
+        } catch {
+            // ignore corrupted storage
+        }
+    }, []);
 
+    // Persist favorites
+    React.useEffect(() => {
+        try {
+            localStorage.setItem(FAVORITES_KEY, JSON.stringify(Array.from(favorites)));
+        } catch {
+            // ignore storage errors
+        }
+    }, [favorites]);
 
-    // Count active filters ( immediate feedback)
+    const toggleFavorite = React.useCallback((id: string) => {
+        setFavorites((prev) => {
+            const next = new Set(prev);
+            const isAdding = !next.has(id);
+
+            if (isAdding) next.add(id);
+            else next.delete(id);
+
+            setSnackbar({
+                open: true,
+                message: isAdding ? "Added to favorites" : "Removed from favorites",
+            });
+
+            return next;
+        });
+    }, []);
+
+    // Active filter count (for "Filters (n)" UX)
     const activeFilterCount = React.useMemo(() => {
         let count = 0;
 
@@ -94,11 +145,9 @@ export default function ExplorerLayout({ missions }: Props) {
 
         if (yearRange.from != null || yearRange.to != null) count += 1;
 
-        const [minCost, maxCost] = costRange;
-        if (minCost !== costMinMax.min || maxCost !== costMinMax.max) count += 1;
-
         if (costRange[0] !== costMinMax.min || costRange[1] !== costMinMax.max) count += 1;
 
+        if (showFavoritesOnly) count += 1;
 
         return count;
     }, [
@@ -111,9 +160,10 @@ export default function ExplorerLayout({ missions }: Props) {
         costRange,
         costMinMax.min,
         costMinMax.max,
+        showFavoritesOnly,
     ]);
 
-    // Apply filters immediately
+    // Filter
     const filteredMissions = React.useMemo(() => {
         const q = missionQuery.trim().toLowerCase();
 
@@ -126,15 +176,14 @@ export default function ExplorerLayout({ missions }: Props) {
 
             if (selectedStatuses.length && !selectedStatuses.includes(m.status)) return false;
 
-            // Year range
             if (yearRange.from != null && m.year < yearRange.from) return false;
             if (yearRange.to != null && m.year > yearRange.to) return false;
-
-            // Cost range
 
             if (typeof m.cost === "number") {
                 if (m.cost < costRange[0] || m.cost > costRange[1]) return false;
             }
+
+            if (showFavoritesOnly && !favorites.has(m.id)) return false;
 
             return true;
         });
@@ -147,9 +196,11 @@ export default function ExplorerLayout({ missions }: Props) {
         yearRange.from,
         yearRange.to,
         costRange,
+        showFavoritesOnly,
+        favorites,
     ]);
 
-    // Apply sorting
+    // Sort
     const visibleMissions = React.useMemo(() => {
         const copy = [...filteredMissions];
 
@@ -169,10 +220,9 @@ export default function ExplorerLayout({ missions }: Props) {
         return copy;
     }, [filteredMissions, sortKey]);
 
-    // Details dialog respects current visible order
+    // Details dialog navigation
     const [selectedMissionId, setSelectedMissionId] = React.useState<string | null>(null);
 
-    // If filters change and selected item disappears, close dialog
     React.useEffect(() => {
         if (!selectedMissionId) return;
         const stillVisible = visibleMissions.some((m) => m.id === selectedMissionId);
@@ -199,8 +249,10 @@ export default function ExplorerLayout({ missions }: Props) {
         setSelectedStatuses([]);
         setYearRange({});
         setCostRange([costMinMax.min, costMinMax.max]);
+        setShowFavoritesOnly(false);
     };
 
+    // Share sidebar props for desktop + mobile
     const sidebarProps = {
         missionTypes,
         statuses,
@@ -215,9 +267,22 @@ export default function ExplorerLayout({ missions }: Props) {
         onYearRangeChange: setYearRange,
         costRange,
         onCostRangeChange: setCostRange,
+        showFavoritesOnly,
+        onShowFavoritesOnlyChange: setShowFavoritesOnly,
+        favoritesCount: favorites.size,
         activeFilterCount,
         onClearAll: clearAll,
     } as const;
+
+
+    const isFavorited = React.useCallback((id: string) => favorites.has(id), [favorites]);
+
+    const selectedIsFavorited = Boolean(selectedMission && favorites.has(selectedMission.id));
+
+    const toggleSelectedFavorite = React.useCallback(() => {
+        if (!selectedMission) return;
+        toggleFavorite(selectedMission.id);
+    }, [selectedMission, toggleFavorite]);
 
     return (
         <Box sx={{ minHeight: "100vh", bgcolor: "background.default" }}>
@@ -267,7 +332,12 @@ export default function ExplorerLayout({ missions }: Props) {
                         Showing {visibleMissions.length} of {missions.length} missions
                     </Typography>
 
-                    <MissionsGrid missions={visibleMissions} onOpenMission={openMission} />
+                    <MissionsGrid
+                        missions={visibleMissions}
+                        onOpenMission={openMission}
+                        isFavorited={isFavorited}
+                        onToggleFavorite={toggleFavorite}
+                    />
 
                     <MissionDetailsDialog
                         open={Boolean(selectedMissionId)}
@@ -277,11 +347,13 @@ export default function ExplorerLayout({ missions }: Props) {
                         hasNext={hasNext}
                         onPrev={goPrev}
                         onNext={goNext}
+                        isFavorited={selectedIsFavorited}
+                        onToggleFavorite={toggleSelectedFavorite}
                     />
                 </Box>
             </Box>
 
-            {/* Mobile full-screen filters */}
+            {/* Mobile filters */}
             <Drawer
                 open={filtersOpen}
                 onClose={() => setFiltersOpen(false)}
@@ -295,26 +367,25 @@ export default function ExplorerLayout({ missions }: Props) {
                     </IconButton>
                 </Box>
 
-                <FiltersSidebar
-                    missionTypes={missionTypes}
-                    statuses={statuses}
-                    costMin={costMinMax.min}
-                    costMax={costMinMax.max}
-                    costStep={costStep}
-                    selectedMissionTypes={selectedMissionTypes}
-                    onSelectedMissionTypesChange={setSelectedMissionTypes}
-                    selectedStatuses={selectedStatuses}
-                    onSelectedStatusesChange={setSelectedStatuses}
-                    yearRange={yearRange}
-                    onYearRangeChange={setYearRange}
-                    costRange={costRange}
-                    onCostRangeChange={setCostRange}
-                    activeFilterCount={activeFilterCount}
-                    onClearAll={clearAll}
-                />
-
-
+                <FiltersSidebar {...sidebarProps} />
             </Drawer>
+
+            {/* Snackbar feedback */}
+            <Snackbar
+                open={snackbar.open}
+                autoHideDuration={2000}
+                onClose={() => setSnackbar((s) => ({ ...s, open: false }))}
+                anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+            >
+                <Alert
+                    severity="success"
+                    variant="filled"
+                    onClose={() => setSnackbar((s) => ({ ...s, open: false }))}
+                    sx={{ borderRadius: 2 }}
+                >
+                    {snackbar.message}
+                </Alert>
+            </Snackbar>
         </Box>
     );
 }

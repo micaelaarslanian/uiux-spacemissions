@@ -5,9 +5,17 @@ import MissionCard from "./MissionCard";
 type Props = {
     missions: Mission[];
     onOpenMission: (id: string) => void;
+
+    isFavorited: (id: string) => boolean;
+    onToggleFavorite: (id: string) => void;
 };
 
-export default function MissionsGrid({ missions, onOpenMission }: Props) {
+export default function MissionsGrid({
+    missions,
+    onOpenMission,
+    isFavorited,
+    onToggleFavorite,
+}: Props) {
     return (
         <Box
             sx={{
@@ -21,7 +29,13 @@ export default function MissionsGrid({ missions, onOpenMission }: Props) {
             }}
         >
             {missions.map((m) => (
-                <MissionCard key={m.id} mission={m} onOpen={onOpenMission} />
+                <MissionCard
+                    key={m.id}
+                    mission={m}
+                    onOpen={onOpenMission}
+                    isFavorited={isFavorited(m.id)}
+                    onToggleFavorite={onToggleFavorite}
+                />
             ))}
         </Box>
     );

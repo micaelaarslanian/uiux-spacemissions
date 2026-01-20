@@ -19,6 +19,8 @@ import RocketLaunchOutlinedIcon from "@mui/icons-material/RocketLaunchOutlined";
 import PaidOutlinedIcon from "@mui/icons-material/PaidOutlined";
 import type { Mission } from "@/types/mission";
 import Zoom from "@mui/material/Zoom";
+import FavoriteIcon from "@mui/icons-material/Favorite";
+import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 
 type Props = {
     open: boolean;
@@ -29,6 +31,8 @@ type Props = {
     hasNext: boolean;
     onPrev: () => void;
     onNext: () => void;
+    isFavorited: boolean;
+    onToggleFavorite: () => void;
 };
 
 function statusChipColor(status: string): "success" | "error" | "default" {
@@ -39,7 +43,6 @@ function statusChipColor(status: string): "success" | "error" | "default" {
 }
 
 function formatLaunchDate(iso: string) {
-    //  "YYYY-MM-DD" -> "MM/DD/YYYY"
     const [y, m, d] = iso.split("-");
     if (!y || !m || !d) return iso;
     return `${m}/${d}/${y}`;
@@ -53,7 +56,10 @@ export default function MissionDetailsDialog({
     hasNext,
     onPrev,
     onNext,
+    isFavorited,
+    onToggleFavorite,
 }: Props) {
+
     React.useEffect(() => {
         if (!open) return;
 
@@ -104,14 +110,35 @@ export default function MissionDetailsDialog({
                 {/* Scrollable content */}
                 {!mission ? null : (
                     <Box sx={{ p: 3, pb: 10 }}>
-                        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ gap: 2 }}>
+
+                        {/* Header: status + favorite */}
+                        <Stack direction="row" alignItems="center" spacing={1.5}>
                             <Chip
                                 size="small"
                                 label={mission.status.toUpperCase()}
                                 color={statusChipColor(mission.status)}
                                 sx={{ fontWeight: 800 }}
                             />
+
+                            <IconButton
+                                aria-label={isFavorited ? "Remove from favorites" : "Add to favorites"}
+                                onClick={onToggleFavorite}
+                                sx={{
+                                    color: isFavorited ? "error.main" : "text.secondary",
+                                    "@keyframes favPop": {
+                                        "0%": { transform: "scale(1)" },
+                                        "50%": { transform: "scale(1.25)" },
+                                        "100%": { transform: "scale(1)" },
+                                    },
+                                    "& svg": {
+                                        animation: isFavorited ? "favPop 160ms ease" : "none",
+                                    },
+                                }}
+                            >
+                                {isFavorited ? <FavoriteIcon /> : <FavoriteBorderIcon />}
+                            </IconButton>
                         </Stack>
+
 
                         <Typography variant="h4" sx={{ mt: 2, fontWeight: 900 }}>
                             {mission.name}
@@ -206,9 +233,6 @@ export default function MissionDetailsDialog({
                         <ArrowBackIcon />
                     </IconButton>
 
-                    {/* <Typography variant="caption" color="text.secondary">
-                        Browse missions
-                    </Typography> */}
 
                     <IconButton onClick={onNext} disabled={!hasNext} aria-label="Next mission">
                         <ArrowForwardIcon />
