@@ -76,7 +76,7 @@ export default function ExplorerLayout({ missions }: Props) {
     );
     const statuses = React.useMemo(() => uniqueSorted(missions.map((m) => m.status)), [missions]);
 
-    // Cost range from dataset
+    // Ccalculates cost range in dataset
     const costMinMax = React.useMemo(() => {
         const costs = missions
             .map((m) => m.cost)
@@ -84,17 +84,18 @@ export default function ExplorerLayout({ missions }: Props) {
         return computeMinMax(costs);
     }, [missions]);
 
+    // Cost slider step
     const costStep = React.useMemo(
         () => computeStep(costMinMax.min, costMinMax.max),
         [costMinMax.min, costMinMax.max]
     );
 
-    // Initialize slider once dataset range is known
+    // Initialize slider range
     React.useEffect(() => {
         setCostRange([costMinMax.min, costMinMax.max]);
     }, [costMinMax.min, costMinMax.max]);
 
-    // Load favorites on mount
+    // Load favorites from localStorage
     React.useEffect(() => {
         try {
             const raw = localStorage.getItem(FAVORITES_KEY);
@@ -104,19 +105,20 @@ export default function ExplorerLayout({ missions }: Props) {
                 setFavorites(new Set(parsed.filter((x) => typeof x === "string")));
             }
         } catch {
-            // ignore corrupted storage
+
         }
     }, []);
 
-    // Persist favorites
+    //  favorites to localStorage
     React.useEffect(() => {
         try {
             localStorage.setItem(FAVORITES_KEY, JSON.stringify(Array.from(favorites)));
         } catch {
-            // ignore storage errors
+
         }
     }, [favorites]);
 
+    // Toggle favorite mission
     const toggleFavorite = React.useCallback((id: string) => {
         setFavorites((prev) => {
             const next = new Set(prev);
@@ -125,6 +127,7 @@ export default function ExplorerLayout({ missions }: Props) {
             if (isAdding) next.add(id);
             else next.delete(id);
 
+            // Show snackbar
             setSnackbar({
                 open: true,
                 message: isAdding ? "Added to favorites" : "Removed from favorites",
@@ -134,9 +137,10 @@ export default function ExplorerLayout({ missions }: Props) {
         });
     }, []);
 
-    // Active filter count (for "Filters (n)" UX)
+    // Active filter count  
     const activeFilterCount = React.useMemo(() => {
         let count = 0;
+
 
         if (missionQuery.trim()) count += 1;
         if (selectedAgencies.length) count += 1;
@@ -148,6 +152,7 @@ export default function ExplorerLayout({ missions }: Props) {
         if (costRange[0] !== costMinMax.min || costRange[1] !== costMinMax.max) count += 1;
 
         if (showFavoritesOnly) count += 1;
+
 
         return count;
     }, [
@@ -163,7 +168,7 @@ export default function ExplorerLayout({ missions }: Props) {
         showFavoritesOnly,
     ]);
 
-    // Filter
+    // filter missions based on active filters
     const filteredMissions = React.useMemo(() => {
         const q = missionQuery.trim().toLowerCase();
 
@@ -200,10 +205,11 @@ export default function ExplorerLayout({ missions }: Props) {
         favorites,
     ]);
 
-    // Sort
+    // Sort missions
     const visibleMissions = React.useMemo(() => {
         const copy = [...filteredMissions];
 
+        // Sort based on sort key
         switch (sortKey) {
             case "name_asc":
                 copy.sort((a, b) => a.name.localeCompare(b.name));
@@ -223,12 +229,14 @@ export default function ExplorerLayout({ missions }: Props) {
     // Details dialog navigation
     const [selectedMissionId, setSelectedMissionId] = React.useState<string | null>(null);
 
+
     React.useEffect(() => {
         if (!selectedMissionId) return;
         const stillVisible = visibleMissions.some((m) => m.id === selectedMissionId);
         if (!stillVisible) setSelectedMissionId(null);
     }, [selectedMissionId, visibleMissions]);
 
+    // Selected mission index
     const selectedIndex = selectedMissionId
         ? visibleMissions.findIndex((m) => m.id === selectedMissionId)
         : -1;
@@ -236,6 +244,7 @@ export default function ExplorerLayout({ missions }: Props) {
     const selectedMission = selectedIndex >= 0 ? visibleMissions[selectedIndex] : null;
     const hasPrev = selectedIndex > 0;
     const hasNext = selectedIndex >= 0 && selectedIndex < visibleMissions.length - 1;
+
 
     const openMission = (id: string) => setSelectedMissionId(id);
     const closeMission = () => setSelectedMissionId(null);
@@ -274,11 +283,13 @@ export default function ExplorerLayout({ missions }: Props) {
         onClearAll: clearAll,
     } as const;
 
-
+    // Check if a mission is favorited
     const isFavorited = React.useCallback((id: string) => favorites.has(id), [favorites]);
 
+    // Check if selected mission is favorited
     const selectedIsFavorited = Boolean(selectedMission && favorites.has(selectedMission.id));
 
+    // Toggle favorite for selected mission
     const toggleSelectedFavorite = React.useCallback(() => {
         if (!selectedMission) return;
         toggleFavorite(selectedMission.id);
@@ -358,10 +369,11 @@ export default function ExplorerLayout({ missions }: Props) {
                 open={filtersOpen}
                 onClose={() => setFiltersOpen(false)}
                 anchor="left"
-                PaperProps={{ sx: { width: "100vw" } }}
+                slotProps={{
+                    paper: { sx: { width: "100vw" } },
+                }}
             >
                 <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", p: 2 }}>
-                    <Typography sx={{ fontWeight: 900 }}>Filters</Typography>
                     <IconButton onClick={() => setFiltersOpen(false)} aria-label="Close filters">
                         <CloseIcon />
                     </IconButton>

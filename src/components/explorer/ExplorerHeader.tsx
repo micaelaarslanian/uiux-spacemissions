@@ -5,6 +5,7 @@ type Props = {
     subtitle: string;
 };
 
+// Header component for the explorer page
 export default function ExplorerHeader({ title, subtitle }: Props) {
     return (
         <Box sx={{ mb: 4 }}>

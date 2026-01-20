@@ -10,6 +10,7 @@ import {
 import SearchIcon from "@mui/icons-material/Search";
 import type { SortKey } from "./ExplorerLayout";
 
+// Props for ExplorerToolbar component
 type Props = {
     agencies: string[];
 
@@ -23,6 +24,7 @@ type Props = {
     onSortKeyChange: (value: SortKey) => void;
 };
 
+// ExplorerToolbar component
 export default function ExplorerToolbar({
     agencies,
     missionQuery,
@@ -33,6 +35,7 @@ export default function ExplorerToolbar({
     onSortKeyChange,
 }: Props) {
     return (
+
         <Box
             sx={{
                 display: "grid",
@@ -41,21 +44,27 @@ export default function ExplorerToolbar({
                 alignItems: "center",
             }}
         >
+            {/*Search by Mission Name */}
             <TextField
                 fullWidth
                 value={missionQuery}
                 onChange={(e) => onMissionQueryChange(e.target.value)}
                 placeholder="Search mission"
-                InputProps={{
-                    startAdornment: (
-                        <InputAdornment position="start">
-                            <SearchIcon fontSize="small" />
-                        </InputAdornment>
-                    ),
+                slotProps={{
+                    input: {
+                        "aria-label": "Search missions by name",
+                        startAdornment: (
+                            <InputAdornment position="start">
+                                <SearchIcon fontSize="small" />
+                            </InputAdornment>
+                        ),
+                    },
                 }}
                 sx={{ "& .MuiOutlinedInput-root": { borderRadius: 999 } }}
             />
 
+
+            {/*Search by Agencies */}
             <Autocomplete
                 multiple
                 options={agencies}
@@ -65,16 +74,28 @@ export default function ExplorerToolbar({
                     <TextField
                         {...params}
                         placeholder="Agency"
+                        slotProps={{
+                            htmlInput: {
+                                ...params.inputProps,
+                                "aria-label": "Search missions by agencies",
+                            },
+                        }}
                         sx={{ "& .MuiOutlinedInput-root": { borderRadius: 999 } }}
                     />
                 )}
             />
 
+            {/*Sort by year asc / desc / A-Z */}
             <TextField
                 select
                 label="Sort by"
                 value={sortKey}
                 onChange={(e) => onSortKeyChange(e.target.value as SortKey)}
+                slotProps={{
+                    htmlInput: {
+                        "aria-label": "Sort missions",
+                    },
+                }}
                 sx={{ minWidth: 180, "& .MuiOutlinedInput-root": { borderRadius: 2 } }}
             >
                 <MenuItem value="name_asc">Name (A–Z)</MenuItem>

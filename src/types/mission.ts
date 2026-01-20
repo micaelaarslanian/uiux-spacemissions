@@ -9,6 +9,7 @@ export interface Mission {
     description: string;
     launchDate: string; 
     cost: number;
+    
 }
 
 export interface MissionDataFile {

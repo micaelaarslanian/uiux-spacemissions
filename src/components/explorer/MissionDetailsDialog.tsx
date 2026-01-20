@@ -82,6 +82,11 @@ export default function MissionDetailsDialog({
                 transition: Zoom,
             }}
             slotProps={{
+                backdrop: {
+                    sx: {
+                        backgroundColor: "rgba(0, 0, 0, 0.95)",
+                    },
+                },
                 transition: {
                     timeout: 220,
                 },
@@ -89,9 +94,10 @@ export default function MissionDetailsDialog({
                     sx: {
                         borderRadius: 1.5,
                         overflow: "hidden",
-                        bgcolor: "background.paper",
+                        bgcolor: "background.dialogue",
                         border: 1,
                         borderColor: "divider",
+                        boxShadow: "0px 8px 24px rgba(53, 53, 53, 0.6)",
                     },
                 },
             }}
@@ -101,7 +107,7 @@ export default function MissionDetailsDialog({
                 {/* Close button */}
                 <IconButton
                     onClick={onClose}
-                    aria-label="Close details"
+                    aria-label="Close mission details"
                     sx={{ position: "absolute", top: 12, right: 12, zIndex: 2 }}
                 >
                     <CloseIcon />
@@ -124,7 +130,7 @@ export default function MissionDetailsDialog({
                                 aria-label={isFavorited ? "Remove from favorites" : "Add to favorites"}
                                 onClick={onToggleFavorite}
                                 sx={{
-                                    color: isFavorited ? "error.main" : "text.secondary",
+                                    color: isFavorited ? "primary.main" : "text.secondary",
                                     "@keyframes favPop": {
                                         "0%": { transform: "scale(1)" },
                                         "50%": { transform: "scale(1.25)" },
@@ -214,7 +220,7 @@ export default function MissionDetailsDialog({
                     </Box>
                 )}
 
-                {/* Sticky footer with arrows */}
+                {/* Sticky footer  */}
                 <Box
                     sx={{
                         position: "sticky",
@@ -229,6 +235,7 @@ export default function MissionDetailsDialog({
                         alignItems: "center",
                     }}
                 >
+                    {/* Navigation arrows */}
                     <IconButton onClick={onPrev} disabled={!hasPrev} aria-label="Previous mission">
                         <ArrowBackIcon />
                     </IconButton>

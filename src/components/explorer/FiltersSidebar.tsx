@@ -16,6 +16,8 @@ import {
 
 type YearRange = { from?: number; to?: number };
 
+
+// props for FiltersSidebar component
 type Props = {
     missionTypes: string[];
     statuses: string[];
@@ -45,9 +47,11 @@ type Props = {
     onClearAll: () => void;
 };
 
+// Check if string is digits or empty
 function isDigitsOrEmpty(raw: string) {
     return raw === "" || /^\d+$/.test(raw);
 }
+
 
 export default function FiltersSidebar({
     missionTypes,
@@ -69,13 +73,15 @@ export default function FiltersSidebar({
     activeFilterCount,
     onClearAll,
 }: Props) {
+    // Toggle value in list
     const toggle = (value: string, list: string[], setList: (v: string[]) => void) => {
         setList(list.includes(value) ? list.filter((x) => x !== value) : [...list, value]);
     };
 
-    // Year input error state: only non-numeric characters
+    // Year input error hadle: only non-numeric characters
     const [yearError, setYearError] = React.useState(false);
 
+    // Year input change handler
     const handleYearChange = (key: "from" | "to") => (e: React.ChangeEvent<HTMLInputElement>) => {
         const raw = e.target.value;
         const ok = isDigitsOrEmpty(raw);
@@ -90,11 +96,14 @@ export default function FiltersSidebar({
         });
     };
 
+    // Clamp cost value within dataset range 
     const clamp = (v: number) => Math.max(costMin, Math.min(v, costMax));
 
     return (
         <Box sx={{ p: 3 }}>
+
             <Stack direction="row" alignItems="baseline" justifyContent="space-between" sx={{ mb: 1 }}>
+                {/* Header with Clear All button */}
                 <Typography variant="h6" sx={{ fontWeight: 900 }}>
                     Filters
                 </Typography>
@@ -103,6 +112,7 @@ export default function FiltersSidebar({
                 </Button>
             </Stack>
 
+            {/* Active filter count */}
             <Typography variant="caption" color="text.secondary" sx={{ display: "block", mb: 2 }}>
                 {activeFilterCount
                     ? `${activeFilterCount} filter${activeFilterCount > 1 ? "s" : ""} active`
@@ -116,6 +126,11 @@ export default function FiltersSidebar({
                     <Switch
                         checked={showFavoritesOnly}
                         onChange={(e) => onShowFavoritesOnlyChange(e.target.checked)}
+                        slotProps={{
+                            input: {
+                                "aria-label": "Show favorites only",
+                            },
+                        }}
                     />
                 }
                 label={
@@ -131,6 +146,7 @@ export default function FiltersSidebar({
             <Divider />
 
 
+            {/* Mission type, status, year, cost filters */}
             <Stack spacing={3} sx={{ mt: 3 }}>
                 {/* Mission type */}
                 <Box>
@@ -140,6 +156,7 @@ export default function FiltersSidebar({
                     <Stack direction="row" flexWrap="wrap" gap={1}>
                         {missionTypes.map((t) => (
                             <Chip
+                                className="filterChip"
                                 key={t}
                                 label={t}
                                 clickable
@@ -158,6 +175,7 @@ export default function FiltersSidebar({
                     <Stack direction="row" flexWrap="wrap" gap={1}>
                         {statuses.map((s) => (
                             <Chip
+                                className="filterChip"
                                 key={s}
                                 label={s}
                                 clickable
@@ -186,7 +204,12 @@ export default function FiltersSidebar({
                             value={yearRange.from ?? ""}
                             onChange={handleYearChange("from")}
                             error={yearError}
-                            inputProps={{ inputMode: "numeric", pattern: "[0-9]*" }}
+                            slotProps={{
+                                htmlInput: {
+                                    inputMode: "numeric",
+                                    pattern: "[0-9]*",
+                                },
+                            }}
                             fullWidth
                         />
                         <TextField
@@ -194,7 +217,12 @@ export default function FiltersSidebar({
                             value={yearRange.to ?? ""}
                             onChange={handleYearChange("to")}
                             error={yearError}
-                            inputProps={{ inputMode: "numeric", pattern: "[0-9]*" }}
+                            slotProps={{
+                                htmlInput: {
+                                    inputMode: "numeric",
+                                    pattern: "[0-9]*",
+                                },
+                            }}
                             fullWidth
                         />
                     </Stack>

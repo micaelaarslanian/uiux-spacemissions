@@ -21,12 +21,18 @@ type Props = {
     onToggleFavorite: (id: string) => void;
 };
 
-function statusChipColor(status: string): "success" | "error" | "default" {
+// Determine chip color based on mission status
+function statusChipColor(
+    status: string
+): "success" | "error" | "info" | "default" {
     const s = status.toLowerCase();
     if (s.includes("success")) return "success";
     if (s.includes("fail")) return "error";
+    if (s.includes("ongoing")) return "info";
+    if (s.includes("planned")) return "default";
     return "default";
 }
+
 
 export default function MissionCard({
     mission,
@@ -40,7 +46,7 @@ export default function MissionCard({
         <Card
             elevation={0}
             sx={{
-                borderRadius: 3,
+                borderRadius: 1.5,
                 bgcolor: "background.paper",
                 border: 1,
                 borderColor: "divider",
@@ -74,13 +80,21 @@ export default function MissionCard({
                         handleOpen();
                     }
                 }}
-                sx={{ borderRadius: 3, cursor: "pointer" }}
-            >
+                sx={{
+                    borderRadius: 3,
+                    height: "100%",
+                    display: "block",
+                    cursor: "pointer",
+                    "& .MuiCardActionArea-focusHighlight": {
+                        borderRadius: 1.5,
+                    },
+                }}            >
                 <CardContent sx={{ p: 2.5 }}>
                     {/* Top row: status + favorite */}
                     <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                         <Chip
                             size="small"
+
                             label={mission.status.toUpperCase()}
                             color={statusChipColor(mission.status)}
                             sx={{ fontWeight: 700, letterSpacing: 0.3 }}
@@ -97,7 +111,7 @@ export default function MissionCard({
                             }}
                         >
                             {isFavorited && (
-                                <FavoriteIcon fontSize="small" sx={{ color: "error.main" }} />
+                                <FavoriteIcon fontSize="small" sx={{ color: "primary.main" }} />
                             )}
                         </IconButton>
                     </Box>
@@ -114,12 +128,14 @@ export default function MissionCard({
 
                     <Divider sx={{ my: 2 }} />
 
-                    {/* Bottom row: meta + hint */}
+                    {/* Bottom row,  */}
                     <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                        {/* Mission type and year */}
                         <Typography variant="caption" sx={{ fontWeight: 700, letterSpacing: 0.6 }}>
                             {mission.missionType.toUpperCase()} • {mission.year}
                         </Typography>
 
+                        {/* See details hint button */}
                         <Box
                             className="seeDetailsHint"
                             sx={{

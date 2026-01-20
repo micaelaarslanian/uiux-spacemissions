@@ -1,4 +1,3 @@
-import Button from "@mui/material/Button";
 
 import missionData from "@/data/missionData.json";
 import type { MissionDataFile } from "@/types/mission";
