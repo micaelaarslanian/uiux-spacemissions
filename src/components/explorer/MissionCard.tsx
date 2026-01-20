@@ -1,14 +1,6 @@
 "use client";
 
-import {
-    Box,
-    Card,
-    CardActionArea,
-    CardContent,
-    Chip,
-    Divider,
-    Typography,
-} from "@mui/material";
+import { Box, Card, CardActionArea, CardContent, Chip, Divider, Typography } from "@mui/material";
 import type { Mission } from "@/types/mission";
 
 type Props = {
@@ -24,6 +16,8 @@ function statusChipColor(status: string): "success" | "error" | "default" {
 }
 
 export default function MissionCard({ mission, onOpen }: Props) {
+    const handleOpen = () => onOpen(mission.id);
+
     return (
         <Card
             elevation={0}
@@ -33,53 +27,76 @@ export default function MissionCard({ mission, onOpen }: Props) {
                 border: 1,
                 borderColor: "divider",
                 overflow: "hidden",
+                transition: "transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease",
+                "&:hover": {
+                    transform: "translateY(-2px)",
+                    boxShadow: 6,
+                    borderColor: "text.secondary",
+                },
+                "&:hover .seeDetailsHint": {
+                    opacity: 1,
+                    transform: "translateY(0px)",
+                },
             }}
         >
-            <CardActionArea component="div"
+            <CardActionArea
+                component="div"
                 role="button"
                 tabIndex={0}
-                onClick={() => onOpen(mission.id)}
+                aria-label={`Open details for ${mission.name}`}
+                onClick={handleOpen}
                 onKeyDown={(e) => {
                     if (e.key === "Enter" || e.key === " ") {
                         e.preventDefault();
-                        onOpen(mission.id);
+                        handleOpen();
                     }
                 }}
-                sx={{ borderRadius: 3, cursor: "pointer" }}>
+                sx={{ borderRadius: 3, cursor: "pointer" }}
+            >
                 <CardContent sx={{ p: 2.5 }}>
-                    <Box
-                        sx={{
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "space-between",
-                        }}
-                    >
+                    {/* Top row: status */}
+                    <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                         <Chip
                             size="small"
                             label={mission.status.toUpperCase()}
                             color={statusChipColor(mission.status)}
                             sx={{ fontWeight: 700, letterSpacing: 0.3 }}
                         />
-
                     </Box>
 
+                    {/* Title */}
                     <Typography variant="h5" sx={{ mt: 2, fontWeight: 800 }}>
                         {mission.name}
                     </Typography>
 
-                    <Typography
-                        variant="body2"
-                        color="text.secondary"
-                        sx={{ mt: 0.5, fontWeight: 600 }}
-                    >
+                    {/* Subtitle */}
+                    <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5, fontWeight: 600 }}>
                         Agency: {mission.agency}
                     </Typography>
 
                     <Divider sx={{ my: 2 }} />
 
-                    <Typography variant="caption" sx={{ fontWeight: 700, letterSpacing: 0.6 }}>
-                        {mission.missionType.toUpperCase()} • {mission.year}
-                    </Typography>
+                    {/* Bottom row: meta + hint */}
+                    <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                        <Typography variant="caption" sx={{ fontWeight: 700, letterSpacing: 0.6 }}>
+                            {mission.missionType.toUpperCase()} • {mission.year}
+                        </Typography>
+
+                        <Box
+                            className="seeDetailsHint"
+                            sx={{
+                                color: "text.secondary",
+                                userSelect: "none",
+                                opacity: { xs: 1, md: 0 },
+                                transform: { xs: "none", md: "translateY(2px)" },
+                                transition: "opacity 160ms ease, transform 160ms ease",
+                            }}
+                        >
+                            <Typography variant="caption" sx={{ fontWeight: 800 }}>
+                                See details
+                            </Typography>
+                        </Box>
+                    </Box>
                 </CardContent>
             </CardActionArea>
         </Card>

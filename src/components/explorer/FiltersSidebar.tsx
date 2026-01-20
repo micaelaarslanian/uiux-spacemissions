@@ -1,5 +1,7 @@
 "use client";
 
+import * as React from "react";
+
 import {
     Box,
     Button,
@@ -35,6 +37,7 @@ type Props = {
 
     activeFilterCount: number;
     onClearAll: () => void;
+
 };
 
 export default function FiltersSidebar({
@@ -57,6 +60,10 @@ export default function FiltersSidebar({
     const toggle = (value: string, list: string[], setList: (v: string[]) => void) => {
         setList(list.includes(value) ? list.filter((x) => x !== value) : [...list, value]);
     };
+
+    // Year input error state
+    const [yearError, setYearError] = React.useState(false);
+
 
     return (
         <Box sx={{ p: 3 }}>
@@ -120,42 +127,59 @@ export default function FiltersSidebar({
                         Year range
                     </Typography>
 
-                    <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: "block" }}>
+                    <Typography variant="caption" color="text.secondary" sx={{ display: "block" }}>
                         Leave blank for open range
                     </Typography>
-
-
 
                     <Stack direction="row" spacing={1.5} sx={{ mt: 1 }}>
                         <TextField
                             label="From"
                             value={yearRange.from ?? ""}
                             onChange={(e) => {
-                                const v = e.target.value.trim();
-                                onYearRangeChange({
-                                    ...yearRange,
-                                    from: v === "" ? undefined : Number(v),
-                                });
+                                const raw = e.target.value;
+                                const isNumber = raw === "" || /^\d+$/.test(raw);
+
+                                setYearError(!isNumber);
+
+                                if (isNumber) {
+                                    onYearRangeChange({
+                                        ...yearRange,
+                                        from: raw === "" ? undefined : Number(raw),
+                                    });
+                                }
                             }}
-                            inputProps={{ inputMode: "numeric", pattern: "[0-9]*" }}
+                            error={yearError}
                             fullWidth
                         />
+
                         <TextField
                             label="To"
                             value={yearRange.to ?? ""}
                             onChange={(e) => {
-                                const v = e.target.value.trim();
-                                onYearRangeChange({
-                                    ...yearRange,
-                                    to: v === "" ? undefined : Number(v),
-                                });
+                                const raw = e.target.value;
+                                const isNumber = raw === "" || /^\d+$/.test(raw);
+
+                                setYearError(!isNumber);
+
+                                if (isNumber) {
+                                    onYearRangeChange({
+                                        ...yearRange,
+                                        to: raw === "" ? undefined : Number(raw),
+                                    });
+                                }
                             }}
-                            inputProps={{ inputMode: "numeric", pattern: "[0-9]*" }}
+                            error={yearError}
                             fullWidth
                         />
                     </Stack>
 
+                    {yearError && (
+                        <Typography variant="caption" color="error" sx={{ mt: 1, display: "block" }}>
+                            Needs to be a year
+                        </Typography>
+                    )}
                 </Box>
+
 
                 {/* Cost */}
                 <Box>

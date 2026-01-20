@@ -18,6 +18,7 @@ import GroupsOutlinedIcon from "@mui/icons-material/GroupsOutlined";
 import RocketLaunchOutlinedIcon from "@mui/icons-material/RocketLaunchOutlined";
 import PaidOutlinedIcon from "@mui/icons-material/PaidOutlined";
 import type { Mission } from "@/types/mission";
+import Zoom from "@mui/material/Zoom";
 
 type Props = {
     open: boolean;
@@ -71,15 +72,24 @@ export default function MissionDetailsDialog({
             onClose={onClose}
             fullWidth
             maxWidth="md"
-            PaperProps={{
-                sx: {
-                    borderRadius: 4,
-                    overflow: "hidden",
-                    bgcolor: "background.paper",
-                    border: 1,
-                    borderColor: "divider",
+            slots={{
+                transition: Zoom,
+            }}
+            slotProps={{
+                transition: {
+                    timeout: 220,
+                },
+                paper: {
+                    sx: {
+                        borderRadius: 1.5,
+                        overflow: "hidden",
+                        bgcolor: "background.paper",
+                        border: 1,
+                        borderColor: "divider",
+                    },
                 },
             }}
+
         >
             <Box sx={{ position: "relative" }}>
                 {/* Close button */}

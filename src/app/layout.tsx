@@ -7,7 +7,7 @@ import theme from "@/theme/theme";
 
 
 export const metadata: Metadata = {
-  title: "UI/UX Interview Template",
+  title: "Space Missions Explorer",
 };
 
 export default function RootLayout({

@@ -240,7 +240,7 @@ export default function ExplorerLayout({ missions }: Props) {
                 {/* Main content */}
                 <Box component="main" sx={{ flex: 1, px: { xs: 2, md: 6 }, py: 5 }}>
                     <ExplorerHeader
-                        title="space missions"
+                        title="Space Missions"
                         subtitle="Browse missions, filter results, and explore detailed information"
                     />
 

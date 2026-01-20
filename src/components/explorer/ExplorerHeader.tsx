@@ -11,7 +11,7 @@ export default function ExplorerHeader({ title, subtitle }: Props) {
             <Typography
                 variant="h3"
                 component="h1"
-                sx={{ fontWeight: 800, letterSpacing: -0.5, textTransform: "lowercase" }}
+                sx={{ fontWeight: 800, letterSpacing: -0.5 }}
             >
                 {title}
             </Typography>

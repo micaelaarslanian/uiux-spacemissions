@@ -7,7 +7,7 @@ export interface Mission {
     missionType: string;
     crew: string[];
     description: string;
-    launchDate: string; // ISO "YYYY-MM-DD"
+    launchDate: string; 
     cost: number;
 }
 
